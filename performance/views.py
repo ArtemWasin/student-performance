@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import LogoutView
 from django.urls import reverse_lazy
 from django.db.models import Avg
+from django.contrib.auth.models import User, Group
 from .models import Student, Subject, Grade
 from .forms import StudentForm, SubjectForm, GradeForm
 
@@ -37,8 +38,35 @@ def student_create(request):
     if request.method == 'POST':
         form = StudentForm(request.POST)
         if form.is_valid():
-            form.save()
+            # Создаем нового пользователя
+            first_name = form.cleaned_data['first_name']
+            last_name = form.cleaned_data['last_name']
+            username = f"{first_name.lower()}.{last_name.lower()}"  # Генерируем username
+            counter = 1
+            base_username = username
+            # Проверяем, существует ли пользователь с таким username
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+            # Создаем пользователя с временным паролем
+            user = User.objects.create_user(
+                username=username,
+                password="defaultpassword123",  # Временный пароль, пользователь может сменить позже
+                first_name=first_name,
+                last_name=last_name
+            )
+            # Добавляем пользователя в группу "Students"
+            student_group = Group.objects.get(name='Students')
+            user.groups.add(student_group)
+            user.save()
+
+            # Создаем студента и связываем его с пользователем
+            student = form.save(commit=False)
+            student.user = user
+            student.save()
             return redirect('student_list')
+        else:
+            print(form.errors)  # Отладка: вывод ошибок в консоль
     else:
         form = StudentForm()
     return render(request, 'performance/student_form.html', {'form': form})
@@ -52,6 +80,8 @@ def student_edit(request, pk):
         if form.is_valid():
             form.save()
             return redirect('student_list')
+        else:
+            print(form.errors)  # Отладка: вывод ошибок в консоль
     else:
         form = StudentForm(instance=student)
     return render(request, 'performance/student_form.html', {'form': form})

@@ -4,7 +4,7 @@ from .models import Student, Subject, Grade
 class StudentForm(forms.ModelForm):
     class Meta:
         model = Student
-        fields = ['user', 'first_name', 'last_name', 'group']
+        fields = ['first_name', 'last_name', 'group']
 
 class SubjectForm(forms.ModelForm):
     class Meta:
@@ -16,5 +16,5 @@ class GradeForm(forms.ModelForm):
         model = Grade
         fields = ['student', 'subject', 'score']
         widgets = {
-            'score': forms.NumberInput(attrs={'min': 0, 'max': 100}),
+            'score': forms.NumberInput(attrs={'min': 0, 'max': 5}),
         }
