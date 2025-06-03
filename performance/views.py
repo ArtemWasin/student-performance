@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.views import LogoutView
+from django.urls import reverse_lazy
 from django.db.models import Avg
 from .models import Student, Subject, Grade
 from .forms import StudentForm, SubjectForm, GradeForm
@@ -164,3 +166,12 @@ def reports(request):
         'best_student': best_student,
         'worst_student': worst_student,
     })
+
+# Кастомное представление для выхода
+class CustomLogoutView(LogoutView):
+    http_method_names = ['get', 'post']  # Разрешаем GET и POST
+
+    def get(self, request, *args, **kwargs):
+        return self.post(request, *args, **kwargs)
+
+logout = CustomLogoutView.as_view(next_page=reverse_lazy('home'))
