@@ -1,65 +1,26 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script>{% extends 'base.html' %}
+{% extends 'base.html' %}
 {% block content %}
-    <h1>Performance Reports</h1>
-    <h2>Best Student</h2>
+    <h1>Отчеты об успеваемости</h1>
+    <h2>Лучший студент</h2>
     {% if best_student %}
-        <p>{{ best_student.first_name }} {{ best_student.last_name }} (Average: {{ best_student.avg_score|floatformat:2 }})</p>
+        <p>{{ best_student.first_name }} {{ best_student.last_name }} (Средний балл: {{ best_student.avg_score|floatformat:2 }})</p>
     {% else %}
-        <p>No data available.</p>
+        <p>Данные отсутствуют.</p>
     {% endif %}
 
-    <h2>Worst Student</h2>
+    <h2>Худший студент</h2>
     {% if worst_student %}
-        <p>{{ worst_student.first_name }} {{ worst_student.last_name }} (Average: {{ worst_student.avg_score|floatformat:2 }})</p>
+        <p>{{ worst_student.first_name }} {{ worst_student.last_name }} (Средний балл: {{ worst_student.avg_score|floatformat:2 }})</p>
     {% else %}
-        <p>No data available.</p>
+        <p>Данные отсутствуют.</p>
     {% endif %}
 
-    <h2>Average Grades by Student</h2>
+    <h2>Средние баллы по студентам</h2>
     <table class="table">
         <thead>
             <tr>
-                <th>Student</th>
-                <th>Average Score</th>
+                <th>Студент</th>
+                <th>Средний балл</th>
             </tr>
         </thead>
         <tbody>
@@ -69,17 +30,17 @@
                     <td>{{ student.avg_score|floatformat:2 }}</td>
                 </tr>
             {% empty %}
-                <tr><td colspan="2">No students found.</td></tr>
+                <tr><td colspan="2">Студенты не найдены.</td></tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <h2>Average Grades by Subject</h2>
+    <h2>Средние баллы по предметам</h2>
     <table class="table">
         <thead>
             <tr>
-                <th>Subject</th>
-                <th>Average Score</th>
+                <th>Предмет</th>
+                <th>Средний балл</th>
             </tr>
         </thead>
         <tbody>
@@ -89,7 +50,7 @@
                     <td>{{ subject.avg_score|floatformat:2 }}</td>
                 </tr>
             {% empty %}
-                <tr><td colspan="2">No subjects found.</td></tr>
+                <tr><td colspan="2">Предметы не найдены.</td></tr>
             {% endfor %}
         </tbody>
     </table>
